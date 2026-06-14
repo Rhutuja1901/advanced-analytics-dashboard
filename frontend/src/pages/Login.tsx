@@ -5,7 +5,9 @@ import API from "../services/api";
 function Login() {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] =
+    useState("");
+
   const [password, setPassword] =
     useState("");
 
@@ -19,7 +21,6 @@ function Login() {
         }
       );
 
-      // Save token
       localStorage.setItem(
         "token",
         res.data.token
@@ -28,9 +29,13 @@ function Login() {
       alert("Login Successful");
 
       navigate("/dashboard");
-    } catch (error) {
-      alert("Invalid credentials");
+    } catch (error: any) {
       console.log(error);
+
+      alert(
+        error?.response?.data?.message ||
+          "Invalid credentials"
+      );
     }
   };
 
@@ -65,7 +70,9 @@ function Login() {
         placeholder="Enter password"
         value={password}
         onChange={(e) =>
-          setPassword(e.target.value)
+          setPassword(
+            e.target.value
+          )
         }
         style={{
           padding: "10px",
