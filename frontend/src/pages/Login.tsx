@@ -5,23 +5,21 @@ import API from "../services/api";
 function Login() {
   const navigate = useNavigate();
 
-  const [email, setEmail] =
-    useState("");
-
+  const [email, setEmail] = useState("");
   const [password, setPassword] =
     useState("");
 
   const handleLogin = async () => {
     try {
       const res = await API.post(
-        "/auth/login",
+        "/api/auth/login",
         {
           email,
           password,
         }
       );
 
-      // Save JWT token
+      // Save token
       localStorage.setItem(
         "token",
         res.data.token
@@ -67,9 +65,7 @@ function Login() {
         placeholder="Enter password"
         value={password}
         onChange={(e) =>
-          setPassword(
-            e.target.value
-          )
+          setPassword(e.target.value)
         }
         style={{
           padding: "10px",
