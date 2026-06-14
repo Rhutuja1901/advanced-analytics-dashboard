@@ -171,7 +171,7 @@ Example:
 
 ```json
 {
-  "email": "user@gmail.com",
+  "email": "rutuja@gmail.com",
   "password": "123456"
 }
 ```
@@ -207,9 +207,9 @@ Data will be stored in PostgreSQL.
 
 Run:
 
-```bash
+bash
 npx prisma generate
-```
+
 
 ---
 
