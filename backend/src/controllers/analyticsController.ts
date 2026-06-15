@@ -1,49 +1,12 @@
-import { Request, Response } from "express";
-import prisma from "../prisma";
+import express from "express";
+import { getDashboardData } from "../controllers/analyticsController";
 
-export const getDashboardData = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    // Get all records
-    const allData =
-      await prisma.analytics.findMany({
-        orderBy: {
-          date: "desc",
-        },
-      });
+const router = express.Router();
 
-    // Total revenue
-    const revenue =
-      await prisma.analytics.aggregate({
-        _sum: {
-          revenue: true,
-        },
-      });
+/**
+ * @route   GET /api/analytics/dashboard
+ * @desc    Get dashboard analytics data
+ */
+router.get("/dashboard", getDashboardData);
 
-    // Total sales
-    const sales =
-      await prisma.analytics.aggregate({
-        _sum: {
-          sales: true,
-        },
-      });
-
-    return res.status(200).json({
-      totalRevenue:
-        revenue._sum.revenue || 0,
-
-      totalSales:
-        sales._sum.sales || 0,
-
-      data: allData,
-    });
-  } catch (error) {
-    console.log(error);
-
-    return res.status(500).json({
-      message: "Server error",
-    });
-  }
-};
+export default router;
