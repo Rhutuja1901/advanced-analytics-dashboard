@@ -1,11 +1,9 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import User from "../models/User";
 
-const prisma = new PrismaClient();
-
-// REGISTER USER
+// ================= REGISTER =================
 export const registerUser = async (
   req: Request,
   res: Response
@@ -13,11 +11,8 @@ export const registerUser = async (
   try {
     const { email, password } = req.body;
 
-    // Check if user already exists
-    const existingUser =
-      await prisma.user.findUnique({
-        where: { email },
-      });
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(400).json({
@@ -26,20 +21,23 @@ export const registerUser = async (
     }
 
     // Hash password
-    const hashedPassword =
-      await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(
+      password,
+      10
+    );
 
-    // Save user
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-      },
+    // Create user
+    const user = await User.create({
+      email,
+      password: hashedPassword,
     });
 
     res.status(201).json({
       message: "User registered successfully",
-      user,
+      user: {
+        id: user._id,
+        email: user.email,
+      },
     });
   } catch (error) {
     console.log(error);
@@ -50,7 +48,7 @@ export const registerUser = async (
   }
 };
 
-// LOGIN USER
+// ================= LOGIN =================
 export const loginUser = async (
   req: Request,
   res: Response
@@ -58,11 +56,10 @@ export const loginUser = async (
   try {
     const { email, password } = req.body;
 
-    // Find user
-    const user =
-      await prisma.user.findUnique({
-        where: { email },
-      });
+    // Check user
+    const user = await User.findOne({
+      email,
+    });
 
     if (!user) {
       return res.status(400).json({
@@ -71,31 +68,39 @@ export const loginUser = async (
     }
 
     // Compare password
-    const isMatch =
-      await bcrypt.compare(
-        password,
-        user.password
-      );
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     if (!isMatch) {
       return res.status(400).json({
-        message: "Invalid password",
+        message: "Invalid credentials",
       });
     }
 
-    // Generate token
+    // Generate JWT Token
     const token = jwt.sign(
-      { userId: user.id },
+      {
+        id: user._id,
+      },
       process.env.JWT_SECRET as string,
       {
-        expiresIn: "1d",
+        expiresIn: "7d",
       }
     );
+
+    // Remove password from response
+    const userWithoutPassword = {
+      id: user._id,
+      email: user.email,
+      createdAt: user.createdAt,
+    };
 
     res.status(200).json({
       message: "Login successful",
       token,
-      user,
+      user: userWithoutPassword,
     });
   } catch (error) {
     console.log(error);
