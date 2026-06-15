@@ -15,19 +15,10 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/csv", csvRoutes);
-app.use(
-  "/api/analytics",
-  analyticsRoutes
-);
+app.use("/api/analytics", analyticsRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-app.get("/", (req, res) => {
-  res.send("Backend Running");
-});
-
 app.listen(PORT, () => {
-  console.log(
-    `Server running on port ${PORT}`
-  );
+  console.log(`Server running on port ${PORT}`);
 });
