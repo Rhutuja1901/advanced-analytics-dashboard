@@ -1,43 +1,56 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User";
+import prisma from "../prisma";
 
-// ================= REGISTER =================
-export const registerUser = async (
+// Register
+export const register = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } =
+      req.body;
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
+    const existingUser =
+      await prisma.user.findUnique({
+        where: { email },
+      });
 
     if (existingUser) {
       return res.status(400).json({
-        message: "User already exists",
+        message:
+          "User already exists",
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(
-      password,
-      10
+    const hashedPassword =
+      await bcrypt.hash(
+        password,
+        10
+      );
+
+    const user =
+      await prisma.user.create({
+        data: {
+          email,
+          password:
+            hashedPassword,
+        },
+      });
+
+    const token = jwt.sign(
+      { id: user.id },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: "7d",
+      }
     );
 
-    // Create user
-    const user = await User.create({
-      email,
-      password: hashedPassword,
-    });
-
     res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        id: user._id,
-        email: user.email,
-      },
+      message:
+        "User registered successfully",
+      token,
     });
   } catch (error) {
     console.log(error);
@@ -48,59 +61,51 @@ export const registerUser = async (
   }
 };
 
-// ================= LOGIN =================
-export const loginUser = async (
+// Login
+export const login = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } =
+      req.body;
 
-    // Check user
-    const user = await User.findOne({
-      email,
-    });
+    const user =
+      await prisma.user.findUnique({
+        where: { email },
+      });
 
     if (!user) {
-      return res.status(400).json({
+      return res.status(404).json({
         message: "User not found",
       });
     }
 
-    // Compare password
-    const isMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isMatch =
+      await bcrypt.compare(
+        password,
+        user.password
+      );
 
     if (!isMatch) {
       return res.status(400).json({
-        message: "Invalid credentials",
+        message:
+          "Invalid credentials",
       });
     }
 
-    // Generate JWT Token
     const token = jwt.sign(
-      {
-        id: user._id,
-      },
+      { id: user.id },
       process.env.JWT_SECRET as string,
       {
         expiresIn: "7d",
       }
     );
 
-    // Remove password from response
-    const userWithoutPassword = {
-      id: user._id,
-      email: user.email,
-      createdAt: user.createdAt,
-    };
-
     res.status(200).json({
-      message: "Login successful",
+      message:
+        "Login successful",
       token,
-      user: userWithoutPassword,
     });
   } catch (error) {
     console.log(error);
