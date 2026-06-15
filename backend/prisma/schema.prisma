@@ -14,7 +14,7 @@ model User {
   createdAt DateTime @default(now())
 }
 
-model SalesData {
+model Analytics {
   id        Int      @id @default(autoincrement())
   product   String
   sales     Int
