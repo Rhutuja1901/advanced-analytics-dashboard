@@ -1,17 +1,12 @@
 import { Request, Response } from "express";
 import prisma from "../prisma";
 
-// Dashboard Analytics
 export const getDashboardData = async (
   req: Request,
   res: Response
 ) => {
   try {
-    // Total Sales Count
-    const totalSales =
-      await prisma.analytics.count();
-
-    // All Data
+    // Get all records
     const allData =
       await prisma.analytics.findMany({
         orderBy: {
@@ -19,36 +14,35 @@ export const getDashboardData = async (
         },
       });
 
-    // Total Revenue
-    const revenueResult =
+    // Total revenue
+    const revenue =
       await prisma.analytics.aggregate({
         _sum: {
           revenue: true,
         },
       });
 
-    // Total Sales (sum)
-    const salesResult =
+    // Total sales
+    const sales =
       await prisma.analytics.aggregate({
         _sum: {
           sales: true,
         },
       });
 
-    res.status(200).json({
-      totalSales:
-        salesResult._sum.sales || 0,
-
+    return res.status(200).json({
       totalRevenue:
-        revenueResult._sum.revenue ||
-        0,
+        revenue._sum.revenue || 0,
+
+      totalSales:
+        sales._sum.sales || 0,
 
       data: allData,
     });
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server error",
     });
   }
